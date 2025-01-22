@@ -1,0 +1,20 @@
+# Aliases extracted from modules themselves.
+alias ip6t_mac xt_mac
+alias ipt_mac xt_mac
+alias platform:gpio-keys-polled gpio_keys_polled
+alias ip6t_MARK xt_mark
+alias ipt_MARK xt_mark
+alias ip6t_mark xt_mark
+alias ipt_mark xt_mark
+alias ip6t_multiport xt_multiport
+alias ipt_multiport xt_multiport
+alias ip6t_LOG xt_LOG
+alias ipt_LOG xt_LOG
+alias ip6t_limit xt_limit
+alias ipt_limit xt_limit
+alias ip6t_time xt_time
+alias ipt_time xt_time
+alias ip6t_comment xt_comment
+alias ipt_comment xt_comment
+alias ip6t_TCPMSS xt_TCPMSS
+alias ipt_TCPMSS xt_TCPMSS

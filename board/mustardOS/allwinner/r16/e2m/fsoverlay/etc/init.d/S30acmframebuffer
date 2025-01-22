@@ -1,0 +1,8 @@
+#!/bin/sh
+
+# Reset framebuffer
+cat /dev/zero > /dev/fb0 
+
+fbset -g 768 1024 768 2048 32
+
+

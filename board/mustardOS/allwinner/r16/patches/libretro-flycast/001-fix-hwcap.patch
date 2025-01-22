@@ -1,0 +1,11 @@
+--- a/core/deps/libchdr/deps/lzma-24.05/src/CpuArch.c	2023-06-02 22:19:35.000000000 +0000
++++ b/core/deps/libchdr/deps/lzma-24.05/src/CpuArch.c	2023-06-14 19:27:57.912035471 +0000
+@@ -794,7 +794,7 @@
+ #ifdef Z7_GETAUXV_AVAILABLE
+ // #pragma message("=== Z7_GETAUXV_AVAILABLE === ")
+ #include <sys/auxv.h>
+-#define USE_HWCAP
++//#define USE_HWCAP
+ #endif
+ 
+ #ifdef USE_HWCAP 

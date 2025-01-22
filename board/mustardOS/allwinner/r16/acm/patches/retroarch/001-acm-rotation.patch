@@ -1,0 +1,117 @@
+diff -urN retroarch-v1.10.3/gfx/common/gl2_common.h ../../../../../dont-delete-batocera.linux/output/acm/build/retroarch-v1.10.3/gfx/common/gl2_common.h
+--- retroarch-v1.10.3/gfx/common/gl2_common.h	2022-04-11 05:17:19.000000000 +0000
++++ ../../../../../dont-delete-batocera.linux/output/acm/build/retroarch-v1.10.3/gfx/common/gl2_common.h	2022-09-12 16:40:24.744036547 +0000
+@@ -218,7 +218,7 @@
+ 
+    struct scaler_ctx pbo_readback_scaler;
+    struct video_viewport vp;                          /* int alignment */
+-   math_matrix_4x4 mvp, mvp_no_rot;
++   math_matrix_4x4 mvp, mvp_no_rot, mvp_screen_rot;
+    struct video_coords coords;                        /* ptr alignment */
+    struct scaler_ctx scaler;
+    video_info_t video_info;
+diff -urN retroarch-v1.10.3/gfx/drivers/gl2.c ../../../../../dont-delete-batocera.linux/output/acm/build/retroarch-v1.10.3/gfx/drivers/gl2.c
+--- retroarch-v1.10.3/gfx/drivers/gl2.c	2022-04-11 05:17:19.000000000 +0000
++++ ../../../../../dont-delete-batocera.linux/output/acm/build/retroarch-v1.10.3/gfx/drivers/gl2.c	2022-09-12 16:40:24.744036547 +0000
+@@ -377,6 +377,10 @@
+    matrix_4x4_ortho(gl->mvp_no_rot, ortho->left, ortho->right,
+          ortho->bottom, ortho->top, ortho->znear, ortho->zfar);
+ 
++   matrix_4x4_rotate_z(rot, M_PI * 90 / 180.0f);
++   matrix_4x4_multiply(gl->mvp_screen_rot, rot, gl->mvp_no_rot);
++   gl->mvp_no_rot = gl->mvp_screen_rot;
++
+    if (!allow_rotate)
+    {
+       gl->mvp = gl->mvp_no_rot;
+@@ -468,7 +472,8 @@
+       gl->vp.y *= 2;
+ #endif
+ 
+-   glViewport(gl->vp.x, gl->vp.y, gl->vp.width, gl->vp.height);
++//   glViewport(gl->vp.x, gl->vp.y, gl->vp.width, gl->vp.height);
++   glViewport(gl->vp.y, gl->vp.x, gl->vp.height, gl->vp.width);
+    gl2_set_projection(gl, &default_ortho, allow_rotate);
+ 
+    /* Set last backbuffer viewport. */
+@@ -2465,9 +2472,10 @@
+ 
+    if (gl->menu_texture_full_screen)
+    {
+-      glViewport(0, 0, width, height);
++      glViewport(0, 0, height, width);
+       glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+-      glViewport(gl->vp.x, gl->vp.y, gl->vp.width, gl->vp.height);
++//      glViewport(gl->vp.x, gl->vp.y, gl->vp.width, gl->vp.height);
++      glViewport(gl->vp.y, gl->vp.x, gl->vp.height, gl->vp.width);
+    }
+    else
+       glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+diff -urN retroarch-v1.10.3/gfx/drivers/gl2.c ../../../../../dont-delete-batocera.linux/output/acm/build/retroarch-v1.10.3/gfx/drivers/gl2.c
+--- retroarch-v1.10.3/gfx/drivers/gl2.c	2022-04-11 05:17:19.000000000 +0000
++++ ../../../../../dont-delete-batocera.linux/output/acm/build/retroarch-v1.10.3/gfx/drivers/gl2.c	2022-09-12 16:40:24.744036547 +0000
+--- orig_gl2.c	2024-10-07 22:33:38.707163263 -0400
++++ gl2.c	2024-10-07 22:32:55.158220106 -0400
+@@ -515,7 +515,8 @@
+    if (!draw->coords->lut_tex_coord)
+       draw->coords->lut_tex_coord = &gl2_tex_coords[0];
+ 
+-   glViewport(draw->x, draw->y, draw->width, draw->height);
++   //glViewport(draw->x, draw->y, draw->width, draw->height);
++   glViewport(video_height - draw->y - draw->height, draw->x, draw->height, draw->width);
+    glBindTexture(GL_TEXTURE_2D, (GLuint)draw->texture);
+ 
+    gl->shader->set_coords(gl->shader_data, draw->coords);
+@@ -617,7 +618,8 @@
+       int x, int y,
+       unsigned width, unsigned height)
+ {
+-   glScissor(x, video_height - y - height, width, height);
++//   glScissor(x, video_height - y - height, width, height);
++   glScissor(video_height - y - height, x, height, width);
+    glEnable(GL_SCISSOR_TEST);
+ #ifdef MALI_BUG
+    /* TODO/FIXME: If video width/height changes between
+diff -urN retroarch-v1.10.3/gfx/drivers_shader/shader_glsl.c ../../../../../dont-delete-batocera.linux/output/acm/build/retroarch-v1.10.3/gfx/drivers_shader/shader_glsl.c
+--- retroarch-v1.10.3/gfx/drivers_shader/shader_glsl.c	2022-04-11 05:17:19.000000000 +0000
++++ ../../../../../dont-delete-batocera.linux/output/acm/build/retroarch-v1.10.3/gfx/drivers_shader/shader_glsl.c	2022-09-12 16:40:24.744036547 +0000
+@@ -643,6 +645,8 @@
+    uni->frame_count     = gl_glsl_get_uniform(glsl, prog, "FrameCount");
+    uni->frame_direction = gl_glsl_get_uniform(glsl, prog, "FrameDirection");
+ 
++   uni->rotation        = gl_glsl_get_uniform(glsl, prog, "Rotation");
++
+    for (i = 0; i < glsl->shader->luts; i++)
+       uni->lut_texture[i] = glGetUniformLocation(prog, glsl->shader->lut[i].id);
+ 
+@@ -1238,6 +1242,11 @@
+          glUniform1i(uni->frame_direction, 1);
+    }
+ 
++    if (uni->rotation >= 0)
++   {
++      glUniform1i(uni->rotation, retroarch_get_rotation());
++   }
++
+    /* Set lookup textures. */
+    for (i = 0; i < glsl->shader->luts; i++)
+    {
+--- a/gfx/drivers_context/mali_fbdev_ctx.c	2024-10-07 23:10:16.578829783 -0400
++++ b/gfx/drivers_context/mali_fbdev_ctx.c	2024-10-07 22:47:43.800111584 -0400
+@@ -91,11 +91,11 @@
+    close(fd);
+    fd = -1;
+ 
+-   mali->width                = vinfo.xres;
+-   mali->height               = vinfo.yres;
++   mali->width                = vinfo.yres;
++   mali->height               = vinfo.xres;
+ 
+-   mali->native_window.width  = vinfo.xres;
+-   mali->native_window.height = vinfo.yres;
++   mali->native_window.width  = vinfo.yres;
++   mali->native_window.height = vinfo.xres;
+ 
+    if (vinfo.pixclock)
+    {
+

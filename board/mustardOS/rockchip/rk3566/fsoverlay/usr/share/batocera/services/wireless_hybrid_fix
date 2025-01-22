@@ -1,0 +1,82 @@
+#!/bin/bash
+
+WPA_CONF="/etc/wpa_supplicant.conf"
+WPA_SUPPLICANT_CMD="/usr/sbin/wpa_supplicant"
+CONNMAN_SERVICE="/etc/init.d/S20connman"
+PID_FILE="/var/run/wpa_supplicant.pid"
+
+case "$1" in
+    start)
+        echo "Starting custom Wi-Fi service..."
+
+        # Get Wi-Fi SSID and Key
+        SSID=$(batocera-settings-get wifi.ssid)
+        KEY=$(batocera-settings-get wifi.key)
+
+        # Check if variables are defined
+        if [ -z "$SSID" ] || [ -z "$KEY" ]; then
+            echo "Wi-Fi SSID or Key is not defined. Exiting."
+            exit 1
+        fi
+
+        # Populate wpa_supplicant.conf
+        cat <<EOF > "$WPA_CONF"
+ctrl_interface=/var/run/wpa_supplicant
+update_config=1
+network={
+    ssid="$SSID"
+    psk="$KEY"
+}
+EOF
+        echo "Updated $WPA_CONF with Wi-Fi settings."
+
+        # Stop connman
+        echo "Stopping connman..."
+        "$CONNMAN_SERVICE" stop
+
+	# Stop existing dbus wpa_supplicant instance
+	killall -9 wpa_supplicant
+
+        # Start wpa_supplicant
+        echo "Starting wpa_supplicant..."
+        $WPA_SUPPLICANT_CMD -B -i wlan0 -c "$WPA_CONF" -P "$PID_FILE"
+
+        echo "Custom Wi-Fi service started."
+        ;;
+    stop)
+        echo "Stopping custom Wi-Fi service..."
+
+        # Kill wpa_supplicant
+        if [ -f "$PID_FILE" ]; then
+            kill "$(cat "$PID_FILE")"
+            rm -f "$PID_FILE"
+            echo "wpa_supplicant stopped."
+        else
+            echo "wpa_supplicant is not running."
+        fi
+
+        # Restart connman
+        echo "Starting connman..."
+        "$CONNMAN_SERVICE" start
+
+        echo "Custom Wi-Fi service stopped."
+        ;;
+    restart)
+        $0 stop
+        $0 start
+        ;;
+    status)
+        if [ -f "$PID_FILE" ]; then
+            echo "wpa_supplicant is running with PID $(cat "$PID_FILE")."
+        else
+            echo "wpa_supplicant is not running."
+        fi
+        ;;
+    *)
+        echo "Usage: $0 {start|stop|restart|status}"
+        exit 1
+        ;;
+esac
+
+exit 0
+

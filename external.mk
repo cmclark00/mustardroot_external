@@ -1,0 +1,1 @@
+include $(sort $(wildcard $(BR2_EXTERNAL_mustardOS_PATH)/package/knulli/*/*.mk $(BR2_EXTERNAL_mustardOS_PATH)/package/knulli/*/*/*.mk $(BR2_EXTERNAL_mustardOS_PATH)/package/mustardOS/*/*.mk $(BR2_EXTERNAL_mustardOS_PATH)/package/mustardOS/*/*/*.mk $(BR2_EXTERNAL_mustardOS_PATH)/package/mustardOS/*/*/*/*.mk $(BR2_EXTERNAL_mustardOS_PATH)/package/mustardOS/*/*/*/*/*.mk))

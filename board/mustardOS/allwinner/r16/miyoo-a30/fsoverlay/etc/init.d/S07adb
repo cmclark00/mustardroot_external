@@ -1,0 +1,37 @@
+#!/bin/sh
+
+# Enable ADB
+
+start_adb() { 
+	echo 0 > /sys/class/android_usb/android0/enable
+	echo 1F3A > /sys/class/android_usb/android0/idVendor
+	echo 1007 > /sys/class/android_usb/android0/idProduct
+	#echo mtp,adb > /sys/class/android_usb/android0/functions
+	echo adb > /sys/class/android_usb/android0/functions
+	echo 1 > /sys/class/android_usb/android0/enable
+}
+
+case "$1" in
+    start)
+        start_adb
+	start-stop-daemon --start --background --oknodo --quiet --exec /usr/bin/adbd
+        [ $? = 0 ] && echo "OK" || echo "FAIL"
+	;;
+  stop)
+        printf "Stopping adb-daemon: "
+        killall -9 adbd
+        [ $? = 0 ] && echo "OK" || echo "FAIL"
+        ;;
+  restart|reload)
+        "$0" stop
+        "$0" start
+        ;;
+  *)
+        echo "Usage: $0 {start|stop|restart}"
+        exit 1
+esac
+
+exit $?
+
+
+

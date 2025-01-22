@@ -1,0 +1,6 @@
+config BR2_PACKAGE_M8C
+	bool "m8c"
+	help
+	  m8c is a client for Dirtywave M8 tracker's headless mode
+	  
+	  https://github.com/laamaa/m8c.git

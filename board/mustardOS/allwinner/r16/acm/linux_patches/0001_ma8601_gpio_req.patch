@@ -1,0 +1,29 @@
+--- a/drivers/misc/ma8601.c	2022-10-07 03:41:20.508071517 +0000
++++ b/drivers/misc/ma8601.c	2022-10-07 03:41:54.211907503 +0000
+@@ -59,7 +59,7 @@
+ 	gpio_set_value(ma8601.rst_pin, 1);
+ }
+ 
+-int sunxi_gpio_req(struct gpio_config *gpio)
++int sunxi_gpio_req2(struct gpio_config *gpio)
+ {
+ 	int            ret = 0;
+ 	char           pin_name[8] = {0};
+@@ -127,7 +127,7 @@
+ 	else {
+ 		gpio_vbus_en = &val.gpio;
+ 		ma8601.enable_pin = gpio_vbus_en->gpio;
+-		sunxi_gpio_req(gpio_vbus_en);
++		sunxi_gpio_req2(gpio_vbus_en);
+ 	}
+ 
+ 	type = script_get_item(ma8601_para, "rst_pin", &val);
+@@ -136,7 +136,7 @@
+ 	else {
+ 		gpio_rst = &val.gpio;
+ 		ma8601.rst_pin = gpio_rst->gpio;
+-		sunxi_gpio_req(gpio_rst);
++		sunxi_gpio_req2(gpio_rst);
+ 		printk("get ma8601 reset gpio OK\n");
+ 	}
+ 

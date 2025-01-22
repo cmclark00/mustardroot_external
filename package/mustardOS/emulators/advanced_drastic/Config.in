@@ -1,0 +1,9 @@
+config BR2_PACKAGE_ADVANCED_DRASTIC
+	bool "advanced_drastic"
+	   select BR2_PACKAGE_DRASTIC_LAYOUT
+	   select BR2_PACKAGE_SDL2_DRASTIC
+	help
+          Advanced Drastic
+          Is a NDS emulateur for linux.
+
+           https://github.com/trngaje/advanced_drastic

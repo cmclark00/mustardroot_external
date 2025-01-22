@@ -1,0 +1,6 @@
+# Aliases for symbols, used by symbol_request().
+alias symbol:mali_dev_pause mali
+alias symbol:mali_set_user_setting mali
+alias symbol:mali_perf_set_num_pp_cores mali
+alias symbol:mali_dev_resume mali
+alias symbol:mali_get_user_setting mali

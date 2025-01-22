@@ -1,0 +1,47 @@
+config BR2_PACKAGE_MALI_MP400_SUNXI
+	bool "mali-mp400-sunxi"
+	depends on BR2_aarch64 || (BR2_ARM_EABIHF && BR2_arm)
+	depends on BR2_TOOLCHAIN_USES_GLIBC
+	depends on BR2_TOOLCHAIN_OPTIONAL_LINARO_ARM
+	select BR2_PACKAGE_HAS_LIBEGL
+	select BR2_PACKAGE_HAS_LIBGLES
+        select BR2_PACKAGE_HAS_LIBMALI
+	help
+	  Install userspace Allwinner OpenGL libraries for Mali
+	  Utgard GPUs.
+
+	  https://github.com/linux-sunxi/sunxi-mali-proprietary
+
+if BR2_PACKAGE_MALI_MP400_SUNXI
+
+config BR2_PACKAGE_PROVIDES_LIBEGL
+	default "mali-mp400-sunxi"
+
+config BR2_PACKAGE_PROVIDES_LIBGLES
+	default "mali-mp400-sunxi"
+
+config BR2_PACKAGE_PROVIDES_LIBMALI
+        default "mali-mp400-sunxi"
+
+choice
+	prompt "Version"
+	default BR2_PACKAGE_MALI_MP400_SUNXI_R4P0
+	help
+	  Select the version of the userspace module.
+
+config BR2_PACKAGE_MALI_MP400_SUNXI_R3P2
+	bool "r3p2-01rel1"
+config BR2_PACKAGE_MALI_MP400_SUNXI_R4P0
+	bool "r4p0-00rel0"
+
+endchoice
+
+config BR2_PACKAGE_MALI_MP400_SUNXI_REVISION
+	string
+	default "r3p2-01rel1"	if BR2_PACKAGE_MALI_MP400_SUNXI_R3P2
+	default "r4p0-00rel0"	if BR2_PACKAGE_MALI_MP400_SUNXI_R4P0
+endif
+
+comment "mali-mp400-sunxi needs an EABIhf glibc toolchain"
+	depends on BR2_arm
+	depends on !BR2_TOOLCHAIN_USES_GLIBC || !BR2_ARM_EABIHF

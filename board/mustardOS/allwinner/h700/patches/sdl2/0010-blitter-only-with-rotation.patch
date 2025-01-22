@@ -1,0 +1,19 @@
+--- a/src/video/mali-fbdev/SDL_malivideo.c	2024-10-25 22:43:27.517462027 -0400
++++ b/src/video/mali-fbdev/SDL_malivideo.c	2024-10-25 22:44:34.666361361 -0400
+@@ -163,10 +163,14 @@
+     data->rotation = (vinfo.xres < vinfo.yres) ? 1 : 0;
+ 
+     rotation = SDL_GetHint("SDL_ROTATION");
+-    blitter_status = SDL_GetHint("SDL_BLITTER_DISABLED");
++
+     if (rotation != NULL)
+         data->rotation = SDL_atoi(rotation);
+ 
++    if (data->rotation != 0) {
++	blitter_status = SDL_GetHint("SDL_BLITTER_DISABLED");
++    }
++
+     if (!blitter_status || blitter_status[0] != '1') {
+         data->blitter = SDL_calloc(1, sizeof(MALI_Blitter));
+         data->blitter->_this = _this;
+

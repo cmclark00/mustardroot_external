@@ -1,0 +1,18 @@
+#!/bin/bash
+
+# Auto-resumes sleep if resume while lid is closed only for sp
+BOARD=$(cat /boot/boot/batocera.board)
+if [ "$BOARD" != "rg35xx-sp" ]; then
+    exit 1
+fi
+
+case "$1" in
+    thaw|resume)
+        HALLKEY=$(cat "/sys/class/power_supply/axp2202-battery/hallkey")
+        if [ "$HALLKEY" = "0" ]; then
+            ( sleep 2 && pm-suspend ) &
+        fi
+        ;;
+esac
+
+exit 0

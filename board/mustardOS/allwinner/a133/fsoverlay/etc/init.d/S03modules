@@ -1,0 +1,25 @@
+#!/bin/sh
+
+BOARD=$(cat /boot/boot/batocera.board)
+
+case $1 in
+    start)
+        if [ "$BOARD" = "trimui-smart-pro" ]; then
+                insmod /lib/modules/4.9.191/xradio_mac_tsp.ko
+		insmod /lib/modules/4.9.191/xradio_core_tsp.ko
+		insmod /lib/modules/4.9.191/xradio_wlan_tsp.ko 
+        else
+		insmod /lib/modules/4.9.191/xradio_mac.ko
+		insmod /lib/modules/4.9.191/xradio_core.ko
+		insmod /lib/modules/4.9.191/xradio_wlan.ko
+        fi
+        ;;
+     stop)
+	   	rmmod xradio_wlan
+		rmmod xradio_core
+		rmmod xradio_mac
+        ;;
+esac
+
+exit 0
+

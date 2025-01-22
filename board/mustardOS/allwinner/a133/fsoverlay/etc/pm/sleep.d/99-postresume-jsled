@@ -1,0 +1,13 @@
+#!/bin/bash
+
+SERVICES=$(batocera-settings-get system.services)
+
+case "$1" in
+    thaw|resume)
+        if echo "$SERVICES" | grep -q "rgb_led"; then
+            /usr/bin/knulli-rgb-led-daemon restart
+        fi
+        ;;
+esac
+
+exit 0

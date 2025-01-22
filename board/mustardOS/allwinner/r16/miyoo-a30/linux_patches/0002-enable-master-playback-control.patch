@@ -1,0 +1,11 @@
+--- a/sound/soc/sunxi/audiocodec/sun8iw5_sndcodec.c	2022-10-19 12:50:02.899469317 +0000
++++ b/sound/soc/sunxi/audiocodec/sun8iw5_sndcodec.c	2022-10-19 12:49:39.739587410 +0000
+@@ -3124,7 +3124,7 @@
+ }
+ static const struct snd_kcontrol_new sunxi_codec_controls[] = {
+ 	/*volume ctl: headset ,speaker,earpiece*/
+-	//CODEC_SINGLE("Master Playback Volume", HP_VOLC, 0, 0x3f, 0),
++	CODEC_SINGLE("Master Playback Volume", HP_VOLC, 0, 0x3f, 0),
+ 	CODEC_SINGLE("headphone volume control", HP_VOLC, 0, 0x3f, 0),
+ 	CODEC_SINGLE("earpiece volume control", HP_VOLC, 0, 0x3f, 0),
+ 	CODEC_SINGLE("speaker volume control", HP_VOLC, 0, 0x3f, 0),

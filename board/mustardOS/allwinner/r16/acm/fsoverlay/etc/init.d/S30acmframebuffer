@@ -1,0 +1,15 @@
+#!/bin/sh
+
+V_BOARD=$(cat /boot/boot/batocera.board)
+
+# Reset framebuffer
+cat /dev/zero > /dev/fb0 
+
+if test "${V_BOARD}" = "e2m"
+then
+    fbset -g 768 1024 768 2048 32
+else 
+    fbset -g 480 800 480 1600 32
+fi
+
+

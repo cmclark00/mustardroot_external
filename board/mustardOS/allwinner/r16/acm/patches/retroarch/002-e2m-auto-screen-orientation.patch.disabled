@@ -1,0 +1,391 @@
+diff -urN ./command.h ../patch_retroarch/command.h
+--- ./command.h	2022-10-17 00:51:07.000000000 +0000
++++ ../patch_retroarch/command.h	2022-11-03 12:54:56.370139821 +0000
+@@ -258,7 +258,9 @@
+    CMD_EVENT_CHEAT_TOGGLE,
+    CMD_EVENT_AI_SERVICE_CALL,
+    CMD_EVENT_SAVE_FILES,
+-   CMD_EVENT_CONTROLLER_INIT
++   CMD_EVENT_CONTROLLER_INIT,
++   CMD_EVENT_ROTATE_LANDSCAPE,
++   CMD_EVENT_ROTATE_PORTRAIT
+ };
+ 
+ typedef struct command_handle
+@@ -492,6 +494,8 @@
+    { "MENU_A",                 RETRO_DEVICE_ID_JOYPAD_A },
+    { "MENU_B",                 RETRO_DEVICE_ID_JOYPAD_B },
+    { "AI_SERVICE",             RARCH_AI_SERVICE },
++   { "ROTATE_LANDSCAPE",       RARCH_ROTATE_LANDSCAPE },
++   { "ROTATE_PORTRAIT",        RARCH_ROTATE_PORTRAIT },
+ };
+ #endif
+ 
+diff -urN ./config.def.keybinds.h ../patch_retroarch/config.def.keybinds.h
+--- ./config.def.keybinds.h	2022-10-17 00:51:07.000000000 +0000
++++ ../patch_retroarch/config.def.keybinds.h	2022-11-03 12:54:56.370139821 +0000
+@@ -612,6 +612,20 @@
+       RARCH_AI_SERVICE, NO_BTN, NO_BTN, 0,
+       true
+    },
++   {
++      NULL, NULL,
++      AXIS_NONE, AXIS_NONE, AXIS_NONE,
++      MENU_ENUM_LABEL_VALUE_INPUT_ROTATE_LANDSCAPE, RETROK_UNKNOWN,
++      RARCH_ROTATE_LANDSCAPE, NO_BTN, NO_BTN, 0,
++      true
++   },
++   {
++      NULL, NULL,
++      AXIS_NONE, AXIS_NONE, AXIS_NONE,
++      MENU_ENUM_LABEL_VALUE_INPUT_ROTATE_PORTRAIT, RETROK_UNKNOWN,
++      RARCH_ROTATE_PORTRAIT, NO_BTN, NO_BTN, 0,
++      true
++   },
+ #elif defined(DINGUX)
+    { 
+       NULL, NULL,
+@@ -1201,6 +1215,20 @@
+       RARCH_AI_SERVICE, NO_BTN, NO_BTN, 0,
+       true
+    },
++   {
++      NULL, NULL,
++      AXIS_NONE, AXIS_NONE, AXIS_NONE,
++      MENU_ENUM_LABEL_VALUE_INPUT_ROTATE_LANDSCAPE, RETROK_UNKNOWN,
++      RARCH_ROTATE_LANDSCAPE, NO_BTN, NO_BTN, 0,
++      true
++   },
++   {
++      NULL, NULL,
++      AXIS_NONE, AXIS_NONE, AXIS_NONE,
++      MENU_ENUM_LABEL_VALUE_INPUT_ROTATE_PORTRAIT, RETROK_UNKNOWN,
++      RARCH_ROTATE_PORTRAIT, NO_BTN, NO_BTN, 0,
++      true
++   },
+ #else
+    { 
+       NULL, NULL,
+@@ -1800,6 +1828,20 @@
+       RARCH_AI_SERVICE, NO_BTN, NO_BTN, 0,
+       true
+    },
++   {
++      NULL, NULL,
++      AXIS_NONE, AXIS_NONE, AXIS_NONE,
++      MENU_ENUM_LABEL_VALUE_INPUT_ROTATE_LANDSCAPE, RETROK_UNKNOWN,
++      RARCH_ROTATE_LANDSCAPE, NO_BTN, NO_BTN, 0,
++      true
++   },
++   {
++      NULL, NULL,
++      AXIS_NONE, AXIS_NONE, AXIS_NONE,
++      MENU_ENUM_LABEL_VALUE_INPUT_ROTATE_PORTRAIT, RETROK_UNKNOWN,
++      RARCH_ROTATE_PORTRAIT, NO_BTN, NO_BTN, 0,
++      true
++   },
+ #endif
+ };
+ 
+diff -urN ./configuration.c ../patch_retroarch/configuration.c
+--- ./configuration.c	2022-11-03 12:57:17.613659905 +0000
++++ ../patch_retroarch/configuration.c	2022-11-03 12:54:56.370139821 +0000
+@@ -360,7 +360,9 @@
+    DECLARE_META_BIND(2, streaming_toggle,      RARCH_STREAMING_TOGGLE,       MENU_ENUM_LABEL_VALUE_INPUT_META_STREAMING_TOGGLE),
+    DECLARE_META_BIND(2, runahead_toggle,       RARCH_RUNAHEAD_TOGGLE,        MENU_ENUM_LABEL_VALUE_INPUT_META_RUNAHEAD_TOGGLE),
+    DECLARE_META_BIND(2, ai_service,            RARCH_AI_SERVICE,             MENU_ENUM_LABEL_VALUE_INPUT_META_AI_SERVICE),
+-};
++   DECLARE_META_BIND(2, rotate_landscape,      RARCH_ROTATE_LANDSCAPE,       MENU_ENUM_LABEL_VALUE_INPUT_ROTATE_LANDSCAPE),
++   DECLARE_META_BIND(2, rotate_portrait,       RARCH_ROTATE_PORTRAIT,        MENU_ENUM_LABEL_VALUE_INPUT_ROTATE_PORTRAIT)
++}; 
+ 
+ #if defined(HAVE_METAL)
+ /* iOS supports both the OpenGL and Metal video drivers; default to OpenGL since Metal support is preliminary */
+diff -urN ./gfx/drivers/gl2.c ../patch_retroarch/gfx/drivers/gl2.c
+--- ./gfx/drivers/gl2.c	2022-11-03 12:57:17.665659729 +0000
++++ ../patch_retroarch/gfx/drivers/gl2.c	2022-11-03 12:56:18.997859050 +0000
+@@ -384,7 +384,37 @@
+    matrix_4x4_ortho(gl->mvp_no_rot, ortho->left, ortho->right,
+          ortho->bottom, ortho->top, ortho->znear, ortho->zfar);
+ 
+-   matrix_4x4_rotate_z(rot, M_PI * 270 / 180.0f);
++   settings_t *settings     = config_get_ptr();
++
++   float angle = 0;
++
++   static bool first_time = true;
++
++   if (first_time) {
++      if(settings->uints.video_rotation == 3)
++         settings->uints.screen_orientation = 3;
++      else 
++         settings->uints.screen_orientation = 0;
++      first_time = false;
++      RARCH_LOG("GL2_First_Time\n");
++   }
++
++   if (settings->uints.screen_orientation == 3) { // landscape
++      if (settings->uints.video_rotation == 3) {
++         angle = 0;
++      } else { //video_rotation == 0
++         angle = 90;
++      }
++   } else { // portrait (0)
++      if (settings->uints.video_rotation == 3) {
++         angle = 270;
++      } else { //video_rotation == 0
++         angle = 0;
++      }
++   }
++
++   matrix_4x4_rotate_z(rot, M_PI * angle / 180.0f);
++
+    matrix_4x4_multiply(gl->mvp_screen_rot, rot, gl->mvp_no_rot);
+    gl->mvp_no_rot = gl->mvp_screen_rot;
+ 
+@@ -394,6 +424,8 @@
+       return;
+    }
+ 
++//   RARCH_LOG("landscape_orientation: %d video_rotation: %d angle: %.1f rotation: %d\n", settings->uints.landscape_orientation, settings->uints.video_rotation, angle, gl->rotation);
++
+    radians                 = M_PI * gl->rotation / 180.0f;
+    cosine                  = cosf(radians);
+    sine                    = sinf(radians);
+@@ -446,6 +478,10 @@
+       {
+          float delta;
+ 
++         /* we need to invert the aspect ratio if the screen is rotated */
++         if(settings->uints.video_rotation == 0)
++            desired_aspect = 1/desired_aspect;
++
+          if (fabsf(device_aspect - desired_aspect) < 0.0001f)
+          {
+             /* If the aspect ratios of screen and desired aspect
+diff -urN ./input/input_defines.h ../patch_retroarch/input/input_defines.h
+--- ./input/input_defines.h	2022-10-17 00:51:07.000000000 +0000
++++ ../patch_retroarch/input/input_defines.h	2022-11-03 12:54:56.374139808 +0000
+@@ -126,6 +126,10 @@
+ 
+    RARCH_AI_SERVICE,
+ 
++   /* Orientation */
++   RARCH_ROTATE_LANDSCAPE,
++   RARCH_ROTATE_PORTRAIT,
++
+    RARCH_BIND_LIST_END,
+    RARCH_BIND_LIST_END_NULL
+ };
+diff -urN ./input/input_driver.c ../patch_retroarch/input/input_driver.c
+--- ./input/input_driver.c	2022-10-17 00:51:07.000000000 +0000
++++ ../patch_retroarch/input/input_driver.c	2022-11-03 12:54:56.374139808 +0000
+@@ -3584,6 +3587,8 @@
+ {
+    unsigned i;
+    input_driver_state_t *input_st = &input_driver_st;
++   static bool rotate_portrait_pressed = false;
++   static bool rotate_landscape_pressed = false;
+ 
+    if (!binds)
+       return;
+@@ -3637,6 +3642,70 @@
+             input_st->flags &= ~INP_FLAG_BLOCK_HOTKEY;
+       }
+    }
++   if (!is_menu && binds[port][RARCH_ROTATE_PORTRAIT].valid)
++   {
++      const struct retro_keybind *rotate_portrait_binds_auto =
++         &input_autoconf_binds[port][RARCH_ROTATE_PORTRAIT];
++      const struct retro_keybind *rotate_portrait_normal     =
++         &binds[port][RARCH_ROTATE_PORTRAIT];
++
++      /* Allows rotate_portrait hotkey to still work
++       * even though every hotkey is blocked */
++      if (CHECK_INPUT_DRIVER_BLOCK_HOTKEY(
++               rotate_portrait_normal, rotate_portrait_binds_auto))
++      {
++         if (input_state_wrap(
++                  input_st->current_driver,
++                  input_st->current_data,
++                  input_st->primary_joypad,
++                  sec_joypad,
++                  joypad_info,
++                  &binds[port],
++                  input_st->flags & INP_FLAG_KB_MAPPING_BLOCKED,
++                  port,
++                  RETRO_DEVICE_JOYPAD, 0, RARCH_ROTATE_PORTRAIT)) {
++            if(!rotate_portrait_pressed) {
++               input_st->flags &= ~INP_FLAG_BLOCK_HOTKEY;
++               rotate_portrait_pressed = true;
++               RARCH_LOG("portrait button pressed\n");
++            }
++         } else {
++            rotate_portrait_pressed = false;
++         }
++      }
++   }
++   if (!is_menu && binds[port][RARCH_ROTATE_LANDSCAPE].valid)
++   {
++      const struct retro_keybind *rotate_landscape_binds_auto =
++         &input_autoconf_binds[port][RARCH_ROTATE_LANDSCAPE];
++      const struct retro_keybind *rotate_landscape_normal     =
++         &binds[port][RARCH_ROTATE_LANDSCAPE];
++
++      /* Allows rotate_portrait hotkey to still work
++       * even though every hotkey is blocked */
++      if (CHECK_INPUT_DRIVER_BLOCK_HOTKEY(
++               rotate_landscape_normal, rotate_landscape_binds_auto))
++      {
++         if (input_state_wrap(
++                  input_st->current_driver,
++                  input_st->current_data,
++                  input_st->primary_joypad,
++                  sec_joypad,
++                  joypad_info,
++                  &binds[port],
++                  input_st->flags & INP_FLAG_KB_MAPPING_BLOCKED,
++                  port,
++                  RETRO_DEVICE_JOYPAD, 0, RARCH_ROTATE_LANDSCAPE)) {
++            if(!rotate_landscape_pressed) {
++               input_st->flags &= ~INP_FLAG_BLOCK_HOTKEY;
++               rotate_landscape_pressed = true;
++               RARCH_LOG("landscape button pressed\n");
++            }
++         } else {
++            rotate_landscape_pressed = false;
++         }
++      }
++   }
+ 
+    {
+       int16_t ret = 0;
+diff -urN ./intl/msg_hash_us.h ../patch_retroarch/intl/msg_hash_us.h
+--- ./intl/msg_hash_us.h	2022-10-17 00:51:07.000000000 +0000
++++ ../patch_retroarch/intl/msg_hash_us.h	2022-11-03 12:54:56.374139808 +0000
+@@ -3110,6 +3110,22 @@
+    MENU_ENUM_SUBLABEL_INPUT_META_AI_SERVICE,
+    "Captures an image of the current content then translates and/or reads aloud any on-screen text.\n'AI Service' Must be enabled and configured."
+    )
++MSG_HASH(
++   MENU_ENUM_LABEL_VALUE_INPUT_ROTATE_LANDSCAPE,
++   "Screen Orientation Toggle Landscape"
++   )
++MSG_HASH(
++   MENU_ENUM_SUBLABEL_INPUT_ROTATE_LANDSCAPE,
++   "Toggles Landscape"
++   )
++MSG_HASH(
++   MENU_ENUM_LABEL_VALUE_INPUT_ROTATE_PORTRAIT,
++   "Screen Orientation Toggle Portrait"
++   )
++MSG_HASH(
++   MENU_ENUM_SUBLABEL_INPUT_ROTATE_PORTRAIT,
++   "Toggles Portrait"
++   )
+ 
+ /* Settings > Input > Port # Controls */
+ 
+diff -urN ./menu/cbs/menu_cbs_sublabel.c ../patch_retroarch/menu/cbs/menu_cbs_sublabel.c
+--- ./menu/cbs/menu_cbs_sublabel.c	2022-10-17 00:51:07.000000000 +0000
++++ ../patch_retroarch/menu/cbs/menu_cbs_sublabel.c	2022-11-03 12:54:56.374139808 +0000
+@@ -422,6 +422,8 @@
+ DEFAULT_SUBLABEL_MACRO(action_bind_sublabel_input_meta_streaming_toggle,      MENU_ENUM_SUBLABEL_INPUT_META_STREAMING_TOGGLE)
+ DEFAULT_SUBLABEL_MACRO(action_bind_sublabel_input_meta_runahead_toggle,       MENU_ENUM_SUBLABEL_INPUT_META_RUNAHEAD_TOGGLE)
+ DEFAULT_SUBLABEL_MACRO(action_bind_sublabel_input_meta_ai_service,            MENU_ENUM_SUBLABEL_INPUT_META_AI_SERVICE)
++DEFAULT_SUBLABEL_MACRO(action_bind_sublabel_input_rotate_landscape,           MENU_ENUM_SUBLABEL_INPUT_ROTATE_LANDSCAPE)
++DEFAULT_SUBLABEL_MACRO(action_bind_sublabel_input_rotate_portrait,            MENU_ENUM_SUBLABEL_INPUT_ROTATE_PORTRAIT)
+ DEFAULT_SUBLABEL_MACRO(action_bind_sublabel_input_meta_menu_toggle,           MENU_ENUM_SUBLABEL_INPUT_META_MENU_TOGGLE)
+ DEFAULT_SUBLABEL_MACRO(action_bind_sublabel_input_hotkey_block_delay,         MENU_ENUM_SUBLABEL_INPUT_HOTKEY_BLOCK_DELAY)
+ DEFAULT_SUBLABEL_MACRO(action_bind_sublabel_input_adc_type,                   MENU_ENUM_SUBLABEL_INPUT_ADC_TYPE)
+@@ -2217,6 +2219,12 @@
+             case RARCH_AI_SERVICE:
+                BIND_ACTION_SUBLABEL(cbs, action_bind_sublabel_input_meta_ai_service);
+                return 0;
++            case RARCH_ROTATE_LANDSCAPE:
++               BIND_ACTION_SUBLABEL(cbs, action_bind_sublabel_input_rotate_landscape);
++               return 0;
++            case RARCH_ROTATE_PORTRAIT:
++               BIND_ACTION_SUBLABEL(cbs, action_bind_sublabel_input_rotate_portrait);
++               return 0;
+             default:
+                break;
+          }
+diff -urN ./msg_hash.h ../patch_retroarch/msg_hash.h
+--- ./msg_hash.h	2022-10-17 00:51:07.000000000 +0000
++++ ../patch_retroarch/msg_hash.h	2022-11-03 12:54:56.374139808 +0000
+@@ -943,6 +943,8 @@
+    MENU_ENUM_LABEL_VALUE_INPUT_META_STREAMING_TOGGLE,
+    MENU_ENUM_LABEL_VALUE_INPUT_META_RUNAHEAD_TOGGLE,
+    MENU_ENUM_LABEL_VALUE_INPUT_META_AI_SERVICE,
++   MENU_ENUM_LABEL_VALUE_INPUT_ROTATE_LANDSCAPE,
++   MENU_ENUM_LABEL_VALUE_INPUT_ROTATE_PORTRAIT,
+    MENU_ENUM_LABEL_VALUE_INPUT_META_MENU_TOGGLE,
+ 
+    MENU_ENUM_LABEL_VALUE_INPUT_DEVICE_INDEX,
+@@ -1005,6 +1007,8 @@
+    MENU_ENUM_SUBLABEL_INPUT_META_STREAMING_TOGGLE,
+    MENU_ENUM_SUBLABEL_INPUT_META_RUNAHEAD_TOGGLE,
+    MENU_ENUM_SUBLABEL_INPUT_META_AI_SERVICE,
++   MENU_ENUM_SUBLABEL_INPUT_ROTATE_LANDSCAPE,
++   MENU_ENUM_SUBLABEL_INPUT_ROTATE_PORTRAIT,
+    MENU_ENUM_SUBLABEL_INPUT_META_MENU_TOGGLE,
+ 
+    MENU_ENUM_LABEL_INPUT_DESCRIPTION,
+diff -urN ./retroarch.c ../patch_retroarch/retroarch.c
+--- ./retroarch.c	2022-11-03 12:57:17.557660096 +0000
++++ ../patch_retroarch/retroarch.c	2022-11-03 12:54:56.374139808 +0000
+@@ -2118,6 +2118,12 @@
+       case CMD_EVENT_FPS_TOGGLE:
+          settings->bools.video_fps_show = !(settings->bools.video_fps_show);
+          break;
++      case CMD_EVENT_ROTATE_LANDSCAPE:
++         settings->uints.video_rotation = 3;
++         break;
++      case CMD_EVENT_ROTATE_PORTRAIT:
++         settings->uints.video_rotation = 0;
++         break;    
+       case CMD_EVENT_STATISTICS_TOGGLE:
+          settings->bools.video_statistics_show = !(settings->bools.video_statistics_show);
+          break;
+diff -urN ./runloop.c ../patch_retroarch/runloop.c
+--- ./runloop.c	2022-10-17 00:51:07.000000000 +0000
++++ ../patch_retroarch/runloop.c	2022-11-03 12:54:56.374139808 +0000
+@@ -6688,6 +6688,37 @@
+       }
+    }
+ 
++   /* Check Rotation keys */
++    {
++        bool trig_rotate_key_landscape, trig_rotate_key_portrait;
++        static bool rotate_landscape_key = false;
++        static bool old_rotate_landscape_key = false;
++        static bool rotate_portrait_key = false;
++        static bool old_rotate_portrait_key = false;
++
++        rotate_landscape_key             = BIT256_GET(current_bits, RARCH_ROTATE_LANDSCAPE);
++        trig_rotate_key_landscape = rotate_landscape_key && ! old_rotate_landscape_key;
++        rotate_portrait_key             = BIT256_GET(current_bits, RARCH_ROTATE_PORTRAIT);
++        trig_rotate_key_portrait = rotate_portrait_key && ! old_rotate_portrait_key;
++
++        if(trig_rotate_key_landscape) {
++            RARCH_LOG("landscape. trig: %d key: %2x, old_key: %2x\n", trig_rotate_key_landscape, rotate_landscape_key, old_rotate_landscape_key);
++            RARCH_LOG("portrait. trig: %d key: %2x, old_key: %2x\n", trig_rotate_key_portrait, rotate_portrait_key, old_rotate_portrait_key);
++            RARCH_LOG("LANDSCAPE TRIGGERED!!!\n");
++            command_event(CMD_EVENT_ROTATE_LANDSCAPE, NULL);
++            old_rotate_landscape_key = rotate_landscape_key;
++            old_rotate_portrait_key = 0;
++        }
++        if(trig_rotate_key_portrait) {
++            RARCH_LOG("landscape. trig: %d key: %2x, old_key: %2x\n", trig_rotate_key_landscape, rotate_landscape_key, old_rotate_landscape_key);
++            RARCH_LOG("portrait. trig: %d key: %2x, old_key: %2x\n", trig_rotate_key_portrait, rotate_portrait_key, old_rotate_portrait_key);
++            RARCH_LOG("PORTRAIT TRIGGERED!!!\n");
++            command_event(CMD_EVENT_ROTATE_PORTRAIT, NULL);
++            old_rotate_portrait_key = rotate_portrait_key;
++            old_rotate_landscape_key = 0;
++        }
++    }
++
+    /* Check quit key */
+    {
+       bool trig_quit_key, quit_press_twice;

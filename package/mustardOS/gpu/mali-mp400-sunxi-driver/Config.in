@@ -1,0 +1,17 @@
+comment "mali-mp400-sunxi-driver needs a Linux kernel 3.4 to be built"
+	depends on BR2_MALI_MP400_SUNXI
+	depends on !BR2_LINUX_KERNEL
+
+config BR2_PACKAGE_MALI_MP400_SUNXI_DRIVER
+	bool "mali-mp400-sunxi-driver"
+	select BR2_TOOLCHAIN_OPTIONAL_LINARO_ARM
+	depends on BR2_LINUX_KERNEL
+	help
+	  This package builds and installs the Linux kernel driver for
+	  the Mali Utgard GPU on Allwinner platforms, compatible with
+	  the legacy Linux kernel (3.4). Note that it should be
+	  installed together with the corresponding userspace OpenGL
+	  libraries, which are provided as binaries only at:
+	  https://github.com/linux-sunxi/sunxi-mali-proprietary
+
+

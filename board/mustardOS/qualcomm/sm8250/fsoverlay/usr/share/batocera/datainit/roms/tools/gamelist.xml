@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<gameList>
+	<game>
+		<path>./RGB Settings.sh</path>
+		<name>RGB Settings</name>
+		<desc>A tool for setting up the RGB LEDs of your handheld device.</desc>
+		<image>./images/rgb-settings-image.png</image>
+		<thumbnail>./images/rgb-settings-image.png</thumbnail>
+		<genre>Settings</genre>
+		<lang>en</lang>
+	</game>
+</gameList>

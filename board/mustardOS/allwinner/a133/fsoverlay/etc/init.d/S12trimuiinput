@@ -1,0 +1,20 @@
+#!/bin/sh
+
+BOARD=$(cat /boot/boot/batocera.board)
+
+case $1 in
+    start)
+	if [ "$BOARD" = "trimui-smart-pro" ]; then 
+		trimui_inputd_smart_pro &
+	else
+		trimui_inputd_brick &
+	fi
+	;;
+     stop)
+	killall -9 trimui_inputd_smart_pro
+	killall -9 trimui_inputd_brick
+	;;
+esac
+
+exit 0
+
