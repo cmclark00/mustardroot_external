@@ -21,9 +21,9 @@ define POWERVR_GE8300_DRIVER_INSTALL_STAGING_CMDS
 
         cp -rf $(@D)/fbdev/glibc/lib64/* $(STAGING_DIR)/usr/lib/
 
-        $(INSTALL) -D -m 0644  $(BR2_EXTERNAL_BATOCERA_PATH)/package/batocera/gpu/powervr-ge8300-driver/egl.pc \
+        $(INSTALL) -D -m 0644  $(BR2_EXTERNAL_mustardOS_PATH)/package/mustardOS/gpu/powervr-ge8300-driver/egl.pc \
                 $(STAGING_DIR)/usr/lib/pkgconfig/egl.pc
-        $(INSTALL) -D -m 0644  $(BR2_EXTERNAL_BATOCERA_PATH)/package/batocera/gpu/powervr-ge8300-driver/glesv2.pc \
+        $(INSTALL) -D -m 0644  $(BR2_EXTERNAL_mustardOS_PATH)/package/mustardOS/gpu/powervr-ge8300-driver/glesv2.pc \
                 $(STAGING_DIR)/usr/lib/pkgconfig/glesv2.pc
 
 endef
