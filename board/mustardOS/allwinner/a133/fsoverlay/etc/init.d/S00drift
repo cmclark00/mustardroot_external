@@ -1,0 +1,16 @@
+#!/bin/sh
+
+case "$1" in
+	start)
+		while true; do
+			hwclock -a
+			sleep 3600
+		done &
+		;;
+	stop) ;;
+	*)
+		echo "Usage: $0 {start|stop}"
+		exit 1
+		;;
+esac
+

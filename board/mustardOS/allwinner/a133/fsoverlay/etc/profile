@@ -1,0 +1,20 @@
+export JAVA_HOME=/opt/java
+export PATH="/bin:/sbin:/usr/bin:/usr/sbin:/opt/muos/bin:/opt/openssh/bin:/opt/micro:/opt/fish/bin:$JAVA_HOME/bin"
+
+if [ "$PS1" ]; then
+	if [ "`id -u`" -eq 0 ]; then
+		export PS1='# '
+	else
+		export PS1='$ '
+	fi
+fi
+
+export EDITOR='/opt/micro/micro'
+
+# Source configuration files from /etc/profile.d
+for i in /etc/profile.d/*.sh ; do
+	if [ -r "$i" ]; then
+		. $i
+	fi
+done
+unset i

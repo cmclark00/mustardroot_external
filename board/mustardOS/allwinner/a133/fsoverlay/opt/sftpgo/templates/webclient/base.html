@@ -1,0 +1,66 @@
+<!--
+Copyright (C) 2023 Nicola Murino
+
+This WebUI uses the KeenThemes Mega Bundle, a proprietary theme:
+
+https://keenthemes.com/products/templates-mega-bundle
+
+KeenThemes HTML/CSS/JS components are allowed for use only within the
+SFTPGo product and restricted to be used in a resealable HTML template
+that can compete with KeenThemes products anyhow.
+
+This WebUI is allowed for use only within the SFTPGo product and
+therefore cannot be used in derivative works/products without an
+explicit grant from the SFTPGo Team (support@sftpgo.com).
+-->
+{{- define "navitems"}}
+{{- block "additionalnavitems" .}}{{- end}}
+{{- if ne .CurrentURL .EditURL }}
+{{- template "theme-switcher"}}
+{{- end}}
+<div class="d-flex align-items-center ms-2 ms-lg-3">
+    <div class="btn btn-icon btn-active-light-primary w-35px h-35px w-md-40px h-md-40px" data-kt-menu-trigger="{default:'click', lg: 'hover'}" data-kt-menu-attach="parent" data-kt-menu-placement="bottom-end">
+        <i class="ki-duotone ki-user fs-2">
+            <i class="path1"></i>
+            <i class="path2"></i>
+        </i>
+    </div>
+    <div class="menu menu-sub menu-sub-dropdown menu-column menu-rounded menu-title-gray-700 menu-icon-gray-500 menu-active-bg menu-state-color fw-semibold py-4 w-250px" data-kt-menu="true">
+        <div class="menu-item px-3 my-0">
+            <div class="menu-content d-flex align-items-center px-3 py-2">
+                <div class="me-5">
+                    <i class="ki-duotone ki-user fs-2">
+                        <i class="path1"></i>
+                        <i class="path2"></i>
+                    </i>
+                </div>
+                <div class="d-flex flex-column">
+                    <div class="fw-semibold d-flex align-items-center fs-5">
+                        <span class="w-175px wrap-word">{{.LoggedUser.Username}}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="separator my-2"></div>
+        <div class="menu-item px-3 my-0">
+            <a id="id_logout_link" href="#" class="menu-link px-3 py-2">
+                <span data-i18n="login.signout" class="menu-title">Sign Out</span>
+            </a>
+        </div>
+    </div>
+</div>
+{{- end}}
+
+{{- define "sidebaritems"}}
+<div class="menu-item">
+    <a class="menu-link {{- if eq .CurrentURL .FilesURL}} active{{- end}}" href="{{.FilesURL}}">
+        <span class="menu-icon">
+            <i class="ki-duotone ki-folder fs-1">
+                <span class="path1"></span>
+                <span class="path2"></span>
+            </i>
+        </span>
+        <span data-i18n="title.files" class="menu-title">Files</span>
+    </a>
+</div>
+{{- end}}
