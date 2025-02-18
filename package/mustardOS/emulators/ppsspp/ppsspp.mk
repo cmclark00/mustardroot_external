@@ -34,7 +34,7 @@ PPSSPP_TARGET_CFLAGS = $(TARGET_CFLAGS)
 PPSSPP_TARGET_BINARY = PPSSPPSDL
 
 # make sure to select glvnd and depends on glew / glu because of X11 desktop GL
-ifeq ($(BR2_PACKAGE_BATOCERA_TARGET_X86_ANY),y)
+ifeq ($(BR2_PACKAGE_mustardOS_TARGET_X86_ANY),y)
     PPSSPP_CONF_OPTS += -DOpenGL_GL_PREFERENCE=GLVND
     PPSSPP_DEPENDENCIES += libglew libglu
 endif
@@ -78,20 +78,20 @@ ifeq ($(BR2_riscv),y)
 endif
 
 # x86_64
-ifeq ($(BR2_PACKAGE_BATOCERA_TARGET_X86_64_ANY),y)
+ifeq ($(BR2_PACKAGE_mustardOS_TARGET_X86_64_ANY),y)
     PPSSPP_CONF_OPTS += -DX86_64=ON
 endif
 
 # rpi4/5 vulkan support
-ifeq ($(BR2_PACKAGE_BATOCERA_TARGET_BCM2711),y)
+ifeq ($(BR2_PACKAGE_mustardOS_TARGET_BCM2711),y)
     PPSSPP_CONF_OPTS += -DARM_NO_VULKAN=OFF
-else ifeq ($(BR2_PACKAGE_BATOCERA_TARGET_BCM2712),y)
+else ifeq ($(BR2_PACKAGE_mustardOS_TARGET_BCM2712),y)
     PPSSPP_CONF_OPTS += -DARM_NO_VULKAN=OFF
 else ifeq ($(BR2_arm)$(BR2_aarch64),y)
     PPSSPP_CONF_OPTS += -DARM_NO_VULKAN=ON
 endif
 
-ifeq ($(BR2_PACKAGE_BATOCERA_WAYLAND),y)
+ifeq ($(BR2_PACKAGE_mustardOS_WAYLAND),y)
     PPSSPP_CONF_OPTS += -DUSE_WAYLAND_WSI=ON
 else
     PPSSPP_CONF_OPTS += -DUSE_WAYLAND_WSI=OFF
@@ -118,13 +118,13 @@ define PPSSPP_INSTALL_TARGET_CMDS
     cp -R $(@D)/assets $(TARGET_DIR)/usr/share/ppsspp/PPSSPP
     # Fix PSP font for languages like Japanese
     # (font from https://github.com/minoryorg/Noto-Sans-CJK-JP/blob/master/fonts/)
-    cp -f $(BR2_EXTERNAL_BATOCERA_PATH)/package/batocera/emulators/ppsspp/NotoSansCJKjp-DemiLight.ttf \
+    cp -f $(BR2_EXTERNAL_mustardOS_PATH)/package/mustardOS/emulators/ppsspp/NotoSansCJKjp-DemiLight.ttf \
         $(TARGET_DIR)/usr/share/ppsspp/PPSSPP/Roboto-Condensed.ttf
 endef
 
 define PPSSPP_POST_PROCESS
 	mkdir -p $(TARGET_DIR)/usr/share/evmapy
-	cp -f $(BR2_EXTERNAL_BATOCERA_PATH)/package/batocera/emulators/ppsspp/psp.ppsspp.keys \
+	cp -f $(BR2_EXTERNAL_mustardOS_PATH)/package/mustardOS/emulators/ppsspp/psp.ppsspp.keys \
         $(TARGET_DIR)/usr/share/evmapy
 endef
 

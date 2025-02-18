@@ -1,0 +1,17 @@
+#!/bin/sh
+
+case "$1" in
+	start)
+		cd /lib/modules/4.9.191
+	    /usr/bin/pvrsrvctl --start
+		;;
+	stop)
+		# It'd be nice to cleanly terminate the mux launcher and
+		# background scripts, but for now, just make sure we don't
+		# start duplicate mux processes on shutdown.
+		;;
+	*)
+		echo "Usage: $0 {start|stop}"
+		exit 1
+		;;
+esac

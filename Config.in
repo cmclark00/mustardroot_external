@@ -67,7 +67,7 @@ menu "mustardOS"
 
 menu "Emulators"
   menu "Retroarch"
-#    source "$BR2_EXTERNAL_mustardOS_PATH/package/mustardOS/emulators/retroarch/retroarch/Config.in"
+    source "$BR2_EXTERNAL_mustardOS_PATH/package/mustardOS/emulators/retroarch/retroarch/Config.in"
     source "$BR2_EXTERNAL_mustardOS_PATH/package/mustardOS/emulators/retroarch/retroarch-assets/Config.in"
     source "$BR2_EXTERNAL_mustardOS_PATH/package/mustardOS/emulators/retroarch/libretro-core-info/Config.in"
     menu "Shaders"

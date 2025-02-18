@@ -26,22 +26,22 @@ FLYCAST_GIT_HASH = $(shell $(GIT) -C $(FLYCAST_DL_DIR)/git rev-parse --short HEA
 FLYCAST_CONF_OPTS += -DGIT_VERSION=$(FLYCAST_GIT_TAG)
 FLYCAST_CONF_OPTS += -DGIT_HASH=$(FLYCAST_GIT_HASH)
 
-ifeq ($(BR2_PACKAGE_BATOCERA_TARGET_X86_64_ANY),y)
+ifeq ($(BR2_PACKAGE_mustardOS_TARGET_X86_64_ANY),y)
     FLYCAST_CONF_OPTS += -DUSE_OPENGL=ON
-else ifeq ($(BR2_PACKAGE_BATOCERA_GLES3),y)
+else ifeq ($(BR2_PACKAGE_mustardOS_GLES3),y)
     FLYCAST_CONF_OPTS += -DUSE_GLES=ON -DUSE_GLES2=OFF -DUSE_OPENGL=ON
-else ifeq ($(BR2_PACKAGE_BATOCERA_GLES2),y)
+else ifeq ($(BR2_PACKAGE_mustardOS_GLES2),y)
     FLYCAST_CONF_OPTS += -DUSE_GLES2=ON -DUSE_GLES=OFF -DUSE_OPENGL=ON
 endif
 
-ifeq ($(BR2_PACKAGE_BATOCERA_VULKAN),y)
+ifeq ($(BR2_PACKAGE_mustardOS_VULKAN),y)
     FLYCAST_CONF_OPTS += -DUSE_VULKAN=ON
 else
     FLYCAST_CONF_OPTS += -DUSE_VULKAN=OFF
 endif
 
 # RPI: use the legacy Broadcom GLES libraries
-ifeq ($(BR2_PACKAGE_BATOCERA_RPI_VCORE),y)
+ifeq ($(BR2_PACKAGE_mustardOS_RPI_VCORE),y)
     FLYCAST_CONF_OPTS += -DUSE_VIDEOCORE=ON
 endif
 
@@ -54,7 +54,7 @@ define FLYCAST_INSTALL_TARGET_CMDS
 	$(INSTALL) -D $(@D)/buildroot-build/flycast $(TARGET_DIR)/usr/bin/flycast
 	# evmapy files
 	mkdir -p $(TARGET_DIR)/usr/share/evmapy
-	cp $(BR2_EXTERNAL_BATOCERA_PATH)/package/batocera/emulators/flycast/*.keys \
+	cp $(BR2_EXTERNAL_mustardOS_PATH)/package/mustardOS/emulators/flycast/*.keys \
         $(TARGET_DIR)/usr/share/evmapy
 endef
 
