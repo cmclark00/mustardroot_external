@@ -975,8 +975,8 @@ diff -urN a/src/video/mali-fbdev/SDL_malivideo.c b/src/video/mali-fbdev/SDL_mali
 +    window->w = displaydata->native_display.width;
 +    window->h = displaydata->native_display.height;
 +#else
-+    window->w = 1024;
-+    window->h = 768;
++    window->w = 1280;
++    window->h = 720;
 +#endif
 +
 +    /* OpenGL ES is the law here */
@@ -1181,54 +1181,4 @@ ctalon@hyperion:/opt/ddata/merge/distribution/output/h700/build/sdl2-2.30.6/src/
  #ifdef SDL_VIDEO_DRIVER_DIRECTFB
      &DirectFB_bootstrap,
  #endif
---- a/src/video/mali-fbdev/SDL_malivideo.c	2024-12-04 17:56:07.468420608 +0000
-+++ b/src/video/mali-fbdev/SDL_malivideo.c	2024-12-04 17:55:08.840547408 +0000
-@@ -184,6 +184,8 @@
- {
-     SDL_WindowData *windowdata;
-     SDL_DisplayData *displaydata;
-+    int fb_width = 0, fb_height = 0;
-+    FILE *fb_modes_file;
- 
-     displaydata = SDL_GetDisplayDriverData(0);
- 
-@@ -193,14 +195,31 @@
-         return SDL_OutOfMemory();
-     }
- 
--#ifndef SDL2_POWERVR_GE8300
--    /* Windows have one size for now */
--    window->w = displaydata->native_display.width;
--    window->h = displaydata->native_display.height;
--#else
--    window->w = 1024;
--    window->h = 768;
--#endif
-+    /* Read framebuffer dimensions from /sys/class/graphics/fb0/modes */
-+    fb_modes_file = fopen("/sys/class/graphics/fb0/modes", "r");
-+    if (fb_modes_file) {
-+        char mode_line[128]; // Assuming the line won't exceed 128 characters
-+        if (fgets(mode_line, sizeof(mode_line), fb_modes_file)) {
-+            if (sscanf(mode_line, "U:%dx%d", &fb_width, &fb_height) != 2) {
-+                SDL_LogError(SDL_LOG_CATEGORY_VIDEO, "Failed to parse framebuffer modes. Using default.");
-+                fb_width = 1024;  // Default fallback
-+                fb_height = 768;
-+            }
-+        } else {
-+            SDL_LogError(SDL_LOG_CATEGORY_VIDEO, "Failed to read framebuffer modes. Using default.");
-+            fb_width = 1024;  // Default fallback
-+            fb_height = 768;
-+        }
-+        fclose(fb_modes_file);
-+    } else {
-+        SDL_LogError(SDL_LOG_CATEGORY_VIDEO, "Could not open framebuffer modes file. Using default.");
-+        fb_width = 1024;  // Default fallback
-+        fb_height = 768;
-+    }
-+
-+    /* Set window size based on framebuffer dimensions */
-+    window->w = fb_width;
-+    window->h = fb_height;
- 
-     /* OpenGL ES is the law here */
-     window->flags |= SDL_WINDOW_OPENGL;
+
